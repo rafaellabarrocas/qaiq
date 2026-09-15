@@ -7,7 +7,7 @@ a verdict.
 ## Quickstart
 
 ```
-npx qaiq .
+npx @rafaellabarrocas/qaiq .
 ```
 
 Real output, from running QAIQ on its own repository:
@@ -63,8 +63,8 @@ why a missing denominator is never rounded up to 100.
 Other ways to run it:
 
 ```
-npx qaiq . --json                # machine-readable Scorecard
-npx qaiq . --min-score=80         # exit 1 if the headline score is below 80
+npx @rafaellabarrocas/qaiq . --json                # machine-readable Scorecard
+npx @rafaellabarrocas/qaiq . --min-score=80         # exit 1 if the headline score is below 80
 ```
 
 Exit codes:
@@ -221,13 +221,13 @@ Point an MCP-capable client at the server:
   "mcpServers": {
     "qaiq": {
       "command": "npx",
-      "args": ["-p", "qaiq", "qaiq-mcp"]
+      "args": ["-p", "@rafaellabarrocas/qaiq", "qaiq-mcp"]
     }
   }
 }
 ```
 
-The `-p qaiq` is required: `qaiq-mcp` is a secondary bin of the `qaiq`
+The `-p @rafaellabarrocas/qaiq` is required: `qaiq-mcp` is a secondary bin of the `qaiq`
 package, not a package name in its own right, so `npx` needs to be told
 which package to fetch it from.
 
