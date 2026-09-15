@@ -68,12 +68,25 @@ export function scanForMarkers(files: SourceFile[]): Violation[] {
  * purpose is "nothing passes unnoticed" must never let an unreadable file
  * vanish from its own accounting.
  */
-export function readScannable(path: string, cwd: string = process.cwd()): SourceFile {
+/**
+ * A file whose staged bytes contain NUL is binary (an image, font, archive).
+ * Decoding it as UTF-8 produces mojibake that matches markers by chance — a
+ * 342KB GIF tripped [playbook-id] on random bytes. Those false positives are
+ * what teach a developer to reach for --no-verify, which costs more than the
+ * theoretical coverage. Binary files are NOT silently ignored: the CLI lists
+ * every one it skipped, so a suspicious binary is still a human's call.
+ */
+export function isBinary(buf: Buffer): boolean {
+  return buf.subarray(0, 8000).includes(0);
+}
+
+export function readScannable(path: string, cwd: string = process.cwd()): SourceFile & { binary?: boolean } {
   try {
-    const content = execFileSync("git", ["show", `:${path}`], {
-      encoding: "utf8", cwd, stdio: ["ignore", "pipe", "pipe"],
-    });
-    return { path, content };
+    const buf = execFileSync("git", ["show", `:${path}`], {
+      cwd, stdio: ["ignore", "pipe", "pipe"],
+    }) as unknown as Buffer;
+    if (isBinary(buf)) return { path, content: "", binary: true };
+    return { path, content: buf.toString("utf8") };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     throw new Error(`cannot read staged file "${path}": ${message}`, { cause: err });
@@ -87,7 +100,19 @@ function stagedFiles(): SourceFile[] {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   try {
-    const violations = scanForMarkers(stagedFiles());
+    const staged = stagedFiles();
+    const binaries = staged.filter((f) => (f as { binary?: boolean }).binary);
+    if (binaries.length > 0) {
+      // Surfaced, never silent: a binary QAIQ could not read as text is still
+      // a human's judgement call, so it is named rather than quietly dropped.
+      process.stderr.write(
+        `\nNot scanned (binary, ${binaries.length}): ` +
+        binaries.map((f) => f.path).join(", ") +
+        "\n  Text markers cannot be matched in binary content. If any of these\n" +
+        "  could carry private material, review it yourself before committing.\n",
+      );
+    }
+    const violations = scanForMarkers(staged);
     if (violations.length > 0) {
       process.stderr.write("\nIP BOUNDARY VIOLATION — refusing to commit.\n\n");
       for (const v of violations) process.stderr.write(`  ${v.path}:${v.line}  [${v.marker}]\n`);

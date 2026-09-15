@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, mkdtempSync, writeFileSync, chmodSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { scanForMarkers, readScannable, SENTINEL } from "../check-ip-boundary.js";
+import { scanForMarkers, isBinary, readScannable, SENTINEL } from "../check-ip-boundary.js";
 
 const f = (content: string) => [{ path: "x.ts", content }];
 
@@ -116,5 +116,19 @@ describe("scanForMarkers", () => {
         }
       });
     expect(offenders).toEqual([]);
+  });
+});
+
+describe("binary files", () => {
+  it("treats content with NUL bytes as binary", () => {
+    expect(isBinary(Buffer.from([0x47, 0x49, 0x46, 0x00, 0x21]))).toBe(true);
+  });
+
+  it("treats ordinary text as not binary", () => {
+    expect(isBinary(Buffer.from("see dev-04-safe-implementation", "utf8"))).toBe(false); // ip-boundary-allow
+  });
+
+  it("still flags a marker in a TEXT file — binary handling must not create a hole", () => {
+    expect(scanForMarkers([{ path: "x.md", content: "see qa-03 for details" }])).toHaveLength(1); // ip-boundary-allow
   });
 });

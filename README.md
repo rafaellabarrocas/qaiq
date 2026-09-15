@@ -10,6 +10,12 @@ a verdict.
 npx @rafaellabarrocas/qaiq .
 ```
 
+![QAIQ scanning a deliberately flawed sample suite](demo/qaiq-demo.gif)
+
+*Running against `demo/sample-suite/` — a small Playwright suite written with
+deliberate mistakes, included in this repo so the output above is reproducible:
+`npx @rafaellabarrocas/qaiq demo/sample-suite`.*
+
 Real output, from running QAIQ on its own repository:
 
 ```
