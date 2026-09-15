@@ -1,0 +1,57 @@
+{
+  "name": "qaiq",
+  "version": "0.1.0",
+  "description": "Test-suite hygiene scorecard for QA and engineering teams",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "prepare": "husky",
+    "prepublishOnly": "npx tsx scripts/check-ip-boundary-ci.ts && npm run build && npm test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "testing",
+    "playwright",
+    "test-quality",
+    "static-analysis",
+    "qa",
+    "mcp"
+  ],
+  "author": "Rafaella Barrocas",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "qaiq": "dist/surfaces/cli/index.js",
+    "qaiq-mcp": "dist/surfaces/mcp/server.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.0",
+    "eslint": "^10.10.0",
+    "husky": "^9.1.7",
+    "tsx": "^4.23.13",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.1"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "typescript": "^6.0.3",
+    "zod": "^4.6.5"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafaellabarrocas/qaiq.git"
+  },
+  "homepage": "https://github.com/rafaellabarrocas/qaiq#readme",
+  "bugs": {
+    "url": "https://github.com/rafaellabarrocas/qaiq/issues"
+  }
+}

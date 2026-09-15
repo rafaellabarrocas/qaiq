@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# SDD design docs: kept locally, never published.
+# They quote this repo's own IP-guard denylist, and their history was
+# rewritten once already to purge client-identifying prose.
+docs/superpowers/

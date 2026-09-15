@@ -1,0 +1,2 @@
+npx tsx scripts/check-ip-boundary.ts
+npx vitest run --silent

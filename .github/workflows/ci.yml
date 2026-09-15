@@ -1,0 +1,23 @@
+name: ci
+on: [push, pull_request]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+
+      # The IP gate runs against the whole tree in CI, not just staged files —
+      # a hook can be bypassed with --no-verify, this cannot.
+      - name: IP boundary
+        run: npx tsx scripts/check-ip-boundary-ci.ts
+
+      - run: npx eslint src scripts
+      - run: npx tsc --noEmit
+      - run: npx vitest run
+      - name: Dogfood — scan our own tests
+        run: npx tsc -p tsconfig.build.json && node dist/surfaces/cli/index.js .
