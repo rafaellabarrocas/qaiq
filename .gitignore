@@ -7,3 +7,8 @@ dist/
 # They quote this repo's own IP-guard denylist, and their history was
 # rewritten once already to purge client-identifying prose.
 docs/superpowers/
+
+# Never commit credentials. A project-level .npmrc holds an auth token.
+.npmrc
+.env
+.env.*
