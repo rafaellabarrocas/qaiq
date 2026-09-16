@@ -132,3 +132,19 @@ describe("binary files", () => {
     expect(scanForMarkers([{ path: "x.md", content: "see qa-03 for details" }])).toHaveLength(1); // ip-boundary-allow
   });
 });
+
+describe("large files", () => {
+  it("reads a staged file bigger than the 1MB execFileSync default", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qaiq-big-"));
+    try {
+      execFileSync("git", ["init", "-q"], { cwd: dir });
+      // 3MB of binary — larger than the default buffer, and NUL-bearing
+      writeFileSync(join(dir, "big.bin"), Buffer.alloc(3 * 1024 * 1024, 0));
+      execFileSync("git", ["add", "big.bin"], { cwd: dir });
+      const f = readScannable("big.bin", dir);
+      expect((f as { binary?: boolean }).binary).toBe(true);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});

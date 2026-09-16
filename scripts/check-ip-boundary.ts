@@ -82,8 +82,12 @@ export function isBinary(buf: Buffer): boolean {
 
 export function readScannable(path: string, cwd: string = process.cwd()): SourceFile & { binary?: boolean } {
   try {
+    // execFileSync defaults to a 1MB buffer; a committed image or video
+    // overruns it and throws ENOBUFS, which the catch below correctly turns
+    // into a refused commit. Raise it so ordinary media does not trip a gate
+    // that is supposed to be watching for prose.
     const buf = execFileSync("git", ["show", `:${path}`], {
-      cwd, stdio: ["ignore", "pipe", "pipe"],
+      cwd, stdio: ["ignore", "pipe", "pipe"], maxBuffer: 256 * 1024 * 1024,
     }) as unknown as Buffer;
     if (isBinary(buf)) return { path, content: "", binary: true };
     return { path, content: buf.toString("utf8") };
