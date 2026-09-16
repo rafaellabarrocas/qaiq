@@ -133,6 +133,10 @@ def main():
     p = subprocess.Popen(
         [ff, "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
          "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "slow",
+         # A silent AAC track is mandatory in practice: TikTok, Reels and Shorts
+         # suppress or reject video with no audio stream at all.
+         "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
+         "-shortest", "-c:a", "aac", "-b:a", "128k",
          "-crf", "19", "-pix_fmt", "yuv420p", "-movflags", "faststart", out],
         stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
