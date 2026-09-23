@@ -63,7 +63,7 @@ string literal argument," so it correctly reads these as real (and
 correctly rejected) suppression attempts when scanning its own repository.
 
 `Locator quality` reads `n/a`, not a perfect score, because QAIQ found zero
-locator calls to judge in its own source tree — see [Scoring](#scoring) for
+locator calls to judge in its own source tree — see [The five dimensions](#the-five-dimensions) for
 why a missing denominator is never rounded up to 100.
 
 Other ways to run it:
@@ -80,6 +80,37 @@ Exit codes:
 | `0` | Ran cleanly. (Findings can still exist — a clean run is not a clean score.) |
 | `1` | `--min-score` (or `qaiq.config.json`'s `minScore`) was set and the headline score came in under it. |
 | `2` | Operational failure — no test files found, unreadable config, a bad flag. Distinct from `1` on purpose: a broken run and a low score are different problems and should trip different CI behaviour. |
+
+## What a QA gets out of it
+
+- **A first read of an inherited suite from one command.** Point QAIQ at a
+  suite you did not write and get a list of `path:line` findings, not a week of
+  reading every spec to learn where the waits and shared state live.
+- **Flake causes found before they flake.** Fixed sleeps, `networkidle`
+  waits, hardcoded identity data that collides under parallel workers, and
+  retry counts high enough to hide failures are all things that pass today
+  and go red at random later. QAIQ flags them while they are still green.
+- **Review comments that cite a rule, not a preference.** "Don't use
+  `waitForTimeout`" becomes `WAIT-001`, with a rationale and a bad/good
+  example from `qaiq_explain_rule`. The conversation moves from taste to a
+  shared standard.
+- **A CI gate that tells a low score apart from a broken run.**
+  `--min-score` fails the build with exit `1`; an unreadable config or no
+  test files exits `2`. You can alert on one and page on the other.
+- **An audit trail for every exception.** A suppression has to carry a real
+  reason, and every one that applied is listed in the output. When someone
+  asks why a rule was switched off, the answer is in the scorecard.
+- **A check on AI-written tests.** Through MCP, an agent can run
+  `qaiq_review_snippet` on the test it just wrote. Because no output ever
+  carries an approval, the agent cannot report "QAIQ says it's fine" as a
+  green light.
+- **Numbers you can track.** `--json` gives a scorecard with a score per
+  dimension, so hygiene can be trended across releases instead of argued from
+  memory.
+- **Your judgment stays yours.** Every run ends by naming what it did not
+  measure and handing back at least one question for a person. That gives you
+  the wording for the conversation where a high score is mistaken for "well
+  tested".
 
 ## What QAIQ does not do
 
