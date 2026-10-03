@@ -104,5 +104,26 @@ export function analyze(files: SourceFile[], pack: RulePack): AnalyzeResult {
     }
   }
 
+  // Whole-suite checks run after the file loop, because what they look for
+  // is an artefact that is absent — and no per-file rule can fire on a file
+  // that is not there. Their opportunity counts unconditionally, so an
+  // absent artefact leaves its dimension MEASURED and bad rather than
+  // unmeasured; an unmeasured dimension drops out of the headline mean and
+  // deleting it would quietly RAISE the score.
+  for (const rule of pack.suiteRules ?? []) {
+    if (!rule.detect(files)) continue;
+    // Counted only on a hit: when the artefact IS present its own file rules
+    // already contribute opportunities for this dimension, so counting here
+    // too would double-count the question and shift every existing score.
+    opportunities[rule.dimension] += rule.opportunity;
+    {
+      findings.push({
+        ruleId: rule.id, dimension: rule.dimension, severity: rule.severity,
+        confidence: rule.confidence, title: rule.title, rationale: rule.rationale,
+        path: ".", line: 0, match: "",
+      });
+    }
+  }
+
   return { findings, skipped: skipTracker.toList(), suppressed, opportunities, filesScanned };
 }

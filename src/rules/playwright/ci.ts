@@ -1,4 +1,4 @@
-import type { Rule } from "../../core/types.js";
+import type { Rule, SuiteRule } from "../../core/types.js";
 
 const ONE = /^/;  // exactly one opportunity per config file
 
@@ -44,5 +44,27 @@ export const ciRules: Rule[] = [
     detect: { kind: "pattern", scope: "config", pattern: /mcr\.microsoft\.com\/playwright(?!:v)/, opportunity: ONE },
     examples: { bad: "image: mcr.microsoft.com/playwright", good: "image: mcr.microsoft.com/playwright:v1.49.0-noble" },
     fixtures: { triggers: "image: mcr.microsoft.com/playwright\n", clean: "image: mcr.microsoft.com/playwright:v1.49.0-noble\n" },
+  },
+];
+
+const isPlaywrightConfig = (path: string) =>
+  /playwright\.config\.[cm]?[jt]s$/.test(path.replace(/\\/g, "/"));
+
+const isSpec = (path: string) => /\.(spec|test)\.[cm]?[jt]sx?$/.test(path);
+
+export const ciSuiteRules: SuiteRule[] = [
+  {
+    id: "CI-005", dimension: "ci-hygiene", severity: "error", confidence: "high",
+    title: "No Playwright config found",
+    rationale:
+      "A suite with no config has not opted out of CI hygiene — it has none. Nothing pins retries, nothing retains a trace, nothing sets workers, and every one of those defaults is decided for you. Scoring this as n/a would mean a repo could raise its headline by deleting the file being judged, which is the one shortcut a hygiene score must never reward.",
+    // Only meaningful where there are specs to run; a repo with no specs at
+    // all is not a Playwright suite missing a config.
+    detect: (files) => files.some((f) => isSpec(f.path)) && !files.some((f) => isPlaywrightConfig(f.path)),
+    opportunity: 1,
+    examples: {
+      bad: "(no playwright.config.ts anywhere in the scanned tree)",
+      good: "export default defineConfig({ retries: 2, workers: 4, use: { trace: 'on-first-retry' } });",
+    },
   },
 ];
