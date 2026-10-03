@@ -151,7 +151,31 @@ opportunities QAIQ found for that dimension in your suite — so a suite with
 ten waits and one bad one is not judged the same as a suite with one wait
 that is bad.
 
-## The 20 rules
+### Absent is not the same as inapplicable
+
+A dimension scores `n/a` when the suite offers nothing to judge — an API-only
+suite has no locators, and pretending otherwise would punish it for a choice
+it was entitled to make. But `n/a` must never be reachable by **deleting the
+thing being judged**: an `n/a` dimension drops out of the headline mean, so
+losing a below-average dimension would lift the average. Omission would pay.
+
+So absence of an artefact QAIQ expects is a **finding**, not an exemption.
+A Playwright suite with no config raises `CI-005`, keeping `ci-hygiene`
+measured — and badly — rather than letting it vanish. These whole-suite
+checks live in the pack's `suiteRules`, because no per-file rule can fire on
+a file that is not there.
+
+The headline also states its own coverage whenever it is partial:
+
+```
+Hygiene Score  84/100  ·  4 of 5 dimensions measured
+```
+
+A score over four dimensions is not comparable with a score over five, and
+the number travels further than any caveat around it — so the caveat ships
+inside the scorecard (`coverage: { measured, total }` in `--json`).
+
+## The 21 rules
 
 Generated directly from `playwrightPack` (`src/rules/playwright/index.ts`) —
 listed here so this table cannot drift from what the tool actually runs.
@@ -185,6 +209,7 @@ listed here so this table cannot drift from what the tool actually runs.
 - `CI-002` — Retry count high enough to mask flake
 - `CI-003` — No parallelism configured
 - `CI-004` — Unpinned browser image in CI
+- `CI-005` — No Playwright config found *(whole-suite check — see below)*
 
 Each rule also ships a `qaiq_explain_rule` entry (see [MCP](#mcp-setup))
 with a rationale and a bad/good example — static, generic, and identical for

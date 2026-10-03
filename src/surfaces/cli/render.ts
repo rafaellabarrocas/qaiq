@@ -15,7 +15,9 @@ function bar(d: DimensionScore): string {
 export function render(card: Scorecard): string {
   const L: string[] = [];
   L.push("");
-  L.push(`  Hygiene Score  ${card.hygieneScore ?? "n/a"}${card.hygieneScore === null ? "" : "/100"}`);
+  const { measured, total } = card.coverage;
+  const partial = measured < total ? `  ·  ${measured} of ${total} dimensions measured` : "";
+  L.push(`  Hygiene Score  ${card.hygieneScore ?? "n/a"}${card.hygieneScore === null ? "" : "/100"}${partial}`);
   L.push("");
   for (const d of card.dimensions) L.push(`  ${LABEL[d.dimension]!.padEnd(20)}${bar(d)}`);
   L.push("");

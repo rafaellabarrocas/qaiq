@@ -24,8 +24,13 @@ const ALWAYS_ASK =
 
 function scoreDimension(d: Dimension, findings: Finding[], opportunities: number): DimensionScore {
   const mine = findings.filter((f) => f.dimension === d);
-  // Zero opportunities is n/a, never 100 — a suite with no CI config has not
-  // earned a perfect CI-hygiene score, and must not raise its headline by omission.
+  // Zero opportunities is n/a, never 100 — a suite with no locators has not
+  // earned a perfect locator score. Note what this does NOT do on its own:
+  // an n/a dimension drops out of the headline mean below, so losing a
+  // BELOW-average dimension still lifts the average. Keeping omission from
+  // paying is the job of the pack's suiteRules, which turn an absent
+  // artefact into a finding so its dimension stays measured. n/a is for
+  // genuinely inapplicable, never for missing.
   if (opportunities === 0) {
     return { dimension: d, score: null, findings: mine.length, opportunities: 0 };
   }
@@ -73,7 +78,9 @@ export function score(result: AnalyzeResult): Scorecard {
   }
 
   return {
-    hygieneScore, dimensions,
+    hygieneScore,
+    coverage: { measured: measured.length, total: dimensions.length },
+    dimensions,
     findings: result.findings, skipped: result.skipped, suppressed: result.suppressed,
     filesScanned: result.filesScanned,
     notMeasured: NOT_MEASURED, openQuestions, disclaimer: DISCLAIMER,

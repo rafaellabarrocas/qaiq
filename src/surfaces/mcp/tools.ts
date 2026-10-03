@@ -85,7 +85,8 @@ export const explainRuleTool = {
     `Explain why a QAIQ rule exists, with generic illustrative examples. The examples are static documentation, identical for every caller and never tailored to your code. ${CRITIQUE_ONLY}`,
   schema: z.object({ ruleId: z.string() }),
   async handler({ ruleId }: { ruleId: string }) {
-    const rule = playwrightPack.rules.find((r) => r.id === ruleId);
+    const rule = playwrightPack.rules.find((r) => r.id === ruleId)
+      ?? playwrightPack.suiteRules?.find((r) => r.id === ruleId);
     if (!rule) throw new Error(`Unknown rule: ${ruleId}`);
     return {
       ruleId: rule.id, title: rule.title, rationale: rule.rationale,

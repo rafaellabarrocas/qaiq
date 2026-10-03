@@ -47,6 +47,31 @@ export interface AstDetector {
 
 export type Detector = PatternDetector | AstDetector;
 
+/**
+ * A check that is about the suite as a whole rather than any one file —
+ * principally, that something expected is ABSENT. A per-file rule can never
+ * fire on a file that does not exist, so without this an absent artefact
+ * leaves its dimension unmeasured, and an unmeasured dimension drops out of
+ * the headline mean. Absence is a finding, not an exemption.
+ */
+export interface SuiteRule {
+  id: string;
+  dimension: Dimension;
+  severity: Severity;
+  confidence: Confidence;
+  title: string;
+  rationale: string;
+  /** True when the suite is missing what this rule requires. */
+  detect: (files: SourceFile[]) => boolean;
+  /** Opportunities contributed WHEN THE RULE FIRES. Absence is the only
+   *  case this rule judges, so when the artefact is present there is nothing
+   *  for it to weigh — the artefact's own file rules already count it, and
+   *  adding an opportunity here would double-count the same question and
+   *  dilute every existing score. */
+  opportunity: number;
+  examples: { bad: string; good: string };
+}
+
 export interface Rule {
   id: string;
   dimension: Dimension;
@@ -62,7 +87,13 @@ export interface Rule {
   fixtures: { triggers: string; clean: string };
 }
 
-export interface RulePack { name: string; framework: string; rules: Rule[] }
+export interface RulePack {
+  name: string;
+  framework: string;
+  rules: Rule[];
+  /** Whole-suite checks, principally absence checks. See SuiteRule. */
+  suiteRules?: SuiteRule[];
+}
 
 export interface Finding {
   ruleId: string; dimension: Dimension; severity: Severity; confidence: Confidence;
@@ -85,6 +116,11 @@ export interface DimensionScore {
 
 export interface Scorecard {
   hygieneScore: number | null;
+  /** How many of the five dimensions the headline actually averages. A
+   *  headline over partial coverage is not comparable with a full one, and
+   *  the number travels further than any caveat around it — so the caveat
+   *  ships inside the scorecard. */
+  coverage: { measured: number; total: number };
   dimensions: DimensionScore[];
   findings: Finding[];
   skipped: SkippedFile[];
