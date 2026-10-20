@@ -1,3 +1,5 @@
+<img src="brand/qaiq.svg" alt="" width="72">
+
 # QAIQ
 
 QAIQ scores the hygiene of a Playwright test suite — waits, locators,
